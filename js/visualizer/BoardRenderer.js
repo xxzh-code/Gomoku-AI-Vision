@@ -6,12 +6,12 @@ const STAR_POS   = [[7,7],[3,3],[3,11],[11,3],[11,11]];
 export class BoardRenderer {
   constructor(container) {
     this.container = container;
-    this.dpr = window.devicePixelRatio || 1;
     this.cellSize = 40;
 
     this._buildDOM();
     this.computeLayout();
     window.addEventListener('resize', () => this.onResize());
+    this._pendingLayout = false;
 
     this.onCellClick = null;
     this.boardGrid.addEventListener('click', (e) => {
@@ -26,7 +26,6 @@ export class BoardRenderer {
       }
     });
 
-    this._lastBoard = null;
     this._hintPos = null;
   }
 
@@ -34,24 +33,17 @@ export class BoardRenderer {
     this.container.innerHTML = '';
     this.container.classList.add('board-wrapper');
 
-    // 棋盘主体（包含 padding 内的坐标空间）
     this.boardMain = el('div','board-main');
-    this.boardMain.style.position = 'relative';
 
-    // 网格
     this.boardGrid = el('div','board-grid');
 
-    // 星位
+    // 星位 — 精确定位在交叉点中心
     STAR_POS.forEach(([cx,cy]) => {
       const s = el('span','star-point');
       s.style.setProperty('--sx', cx);
       s.style.setProperty('--sy', cy);
       this.boardGrid.appendChild(s);
     });
-
-    // 外框
-    this.boardFrame = el('div','board-frame');
-    this.boardGrid.appendChild(this.boardFrame);
 
     // 棋子层
     this.stonesLayer = el('div','stones-layer');
@@ -77,81 +69,65 @@ export class BoardRenderer {
     this.boardGrid.appendChild(this.stonesLayer);
     this.boardMain.appendChild(this.boardGrid);
 
-    // ---- 坐标（在 boardMain 内绝对定位，对齐网格线）----
-    this._coords = { top:[], bottom:[], left:[], right:[] };
-
-    // 顶部 A-O
+    // 四边坐标
     for (let i = 0; i < BOARD_SIZE; i++) {
-      const s = el('span','coord-label coord-top');
-      s.textContent = COL_LABELS[i];
-      s.style.setProperty('--idx', i);
-      this.boardMain.appendChild(s);
-      this._coords.top.push(s);
-    }
-    // 底部 A-O
-    for (let i = 0; i < BOARD_SIZE; i++) {
-      const s = el('span','coord-label coord-bottom');
-      s.textContent = COL_LABELS[i];
-      s.style.setProperty('--idx', i);
-      this.boardMain.appendChild(s);
-      this._coords.bottom.push(s);
-    }
-    // 左侧 1-15
-    for (let i = 0; i < BOARD_SIZE; i++) {
-      const s = el('span','coord-label coord-left');
-      s.textContent = String(15 - i);
-      s.style.setProperty('--idx', i);
-      this.boardMain.appendChild(s);
-      this._coords.left.push(s);
-    }
-    // 右侧 1-15
-    for (let i = 0; i < BOARD_SIZE; i++) {
-      const s = el('span','coord-label coord-right');
-      s.textContent = String(15 - i);
-      s.style.setProperty('--idx', i);
-      this.boardMain.appendChild(s);
-      this._coords.right.push(s);
+      const t = el('span','coord-label coord-top');    t.textContent = COL_LABELS[i]; t.style.setProperty('--idx', i); this.boardMain.appendChild(t);
+      const b = el('span','coord-label coord-bottom'); b.textContent = COL_LABELS[i]; b.style.setProperty('--idx', i); this.boardMain.appendChild(b);
+      const l = el('span','coord-label coord-left');   l.textContent = String(15 - i); l.style.setProperty('--idx', i); this.boardMain.appendChild(l);
+      const r = el('span','coord-label coord-right');  r.textContent = String(15 - i); r.style.setProperty('--idx', i); this.boardMain.appendChild(r);
     }
 
     this.container.appendChild(this.boardMain);
   }
 
+  /* ======== 自适应 ======== */
   computeLayout() {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const isFocus = document.getElementById('gamePage')?.classList.contains('focus-mode');
-    const availW = isFocus ? vw - 60 : vw - 210;
-    const availH = isFocus ? vh - 10  : vh - 140;
-    const coordSlots = 3.3;
+    // 专注：紧贴窗口边缘
+    const availW = isFocus ? vw - 12  : vw - 210;
+    const availH = isFocus ? vh - 12  : vh - 140;
+    const slots  = 2 * 1.25 + 2 * 0.528;  // innerGap*2(格) + coordGap*2(格) ≈ 3.556
     const cs = Math.floor(Math.min(
-      availW / (BOARD_SIZE - 1 + coordSlots),
-      availH / (BOARD_SIZE - 1 + coordSlots)
+      availW / (BOARD_SIZE - 1 + slots),
+      availH / (BOARD_SIZE - 1 + slots)
     ));
     this.cellSize = Math.max(28, Math.min(cs, 55));
 
-    const innerGap  = Math.ceil(this.cellSize * 0.60);
-    const frameW    = 5;
-    const stoneR    = this.cellSize * 0.44;
-    const starR     = Math.max(3, Math.round(this.cellSize * 0.1));
-    const coordFS   = Math.max(13, Math.round(this.cellSize * 0.42));
-    const gridSpan  = (BOARD_SIZE - 1) * this.cellSize;
+    const cell      = this.cellSize;
+    const innerGap  = Math.round(cell * 1.25);           // 1.25 格
+    const stoneD    = cell * 0.44 * 2;                   // 棋子直径
+    const coordGap  = Math.round(stoneD * 0.8);           // 距网格 0.8 倍棋子直径
+    const frameW    = Math.max(2, Math.round(cell * 0.09)); // 描边粗度（比例）
+    const stoneR    = cell * 0.44;
+    const starR     = Math.max(3, Math.round(cell * 0.1));
+    const coordFS   = Math.max(13, Math.round(cell * 0.42));
+    const gridSpan  = (BOARD_SIZE - 1) * cell;
 
     const s = this.container.style;
-    s.setProperty('--cell-size',   this.cellSize + 'px');
-    s.setProperty('--inner-gap',   innerGap + 'px');
-    s.setProperty('--frame-w',     frameW + 'px');
-    s.setProperty('--stone-r',     stoneR + 'px');
-    s.setProperty('--star-r',      starR + 'px');
-    s.setProperty('--coord-fs',    coordFS + 'px');
-    s.setProperty('--grid-span',   gridSpan + 'px');
-    s.setProperty('--marker-r',    Math.max(3, stoneR * 0.22) + 'px');
+    s.setProperty('--cell-size',  cell + 'px');
+    s.setProperty('--inner-gap',  innerGap + 'px');
+    s.setProperty('--coord-gap',  coordGap + 'px');
+    s.setProperty('--frame-w',    frameW + 'px');
+    s.setProperty('--stone-r',    stoneR + 'px');
+    s.setProperty('--star-r',     starR + 'px');
+    s.setProperty('--coord-fs',   coordFS + 'px');
+    s.setProperty('--grid-span',  gridSpan + 'px');
+    s.setProperty('--marker-r',   Math.max(3, stoneR * 0.22) + 'px');
   }
 
   onResize() {
-    if (this._rt) clearTimeout(this._rt);
-    this._rt = setTimeout(() => { this.computeLayout(); }, 150);
+    if (!this._pendingLayout) {
+      this._pendingLayout = true;
+      requestAnimationFrame(() => {
+        this._pendingLayout = false;
+        this.computeLayout();
+      });
+    }
   }
 
+  /* ======== 提示 ======== */
   set hintPos(pos) {
     this._hintPos = pos;
     if (pos) {
@@ -164,32 +140,26 @@ export class BoardRenderer {
   }
   get hintPos() { return this._hintPos; }
 
-  static notation(x, y) {
-    return COL_LABELS[x] + (15 - y);
-  }
+  static notation(x, y) { return COL_LABELS[x] + (15 - y); }
 
+  /* ======== 绘制 ======== */
   draw(board) {
     const { grid, moveHistory } = board;
-    const lastMove = moveHistory.length > 0 ? moveHistory[moveHistory.length - 1] : null;
+    const last = moveHistory.length > 0 ? moveHistory[moveHistory.length - 1] : null;
 
     for (let y = 0; y < BOARD_SIZE; y++) {
       for (let x = 0; x < BOARD_SIZE; x++) {
-        const stone = this._stones[y][x];
-        const val = grid[y][x];
-        if (val === 0) {
-          stone.style.display = 'none';
-          stone.className = 'stone';
-        } else {
-          stone.style.display = '';
-          stone.className = val === PLAYER_BLACK ? 'stone stone-black' : 'stone stone-white';
-        }
+        const s = this._stones[y][x];
+        const v = grid[y][x];
+        if (v === 0) { s.style.display = 'none'; s.className = 'stone'; }
+        else { s.style.display = ''; s.className = v === PLAYER_BLACK ? 'stone stone-black' : 'stone stone-white'; }
       }
     }
 
-    if (lastMove) {
+    if (last) {
       this.lastMarker.style.display = '';
-      this.lastMarker.style.setProperty('--sx', lastMove.x);
-      this.lastMarker.style.setProperty('--sy', lastMove.y);
+      this.lastMarker.style.setProperty('--sx', last.x);
+      this.lastMarker.style.setProperty('--sy', last.y);
     } else {
       this.lastMarker.style.display = 'none';
     }

@@ -226,14 +226,17 @@ html, body {
 /* ======== CSS 棋盘渲染 ======== */
 .board-wrapper {
   --cell-size: 40px;
-  --inner-gap: 24px;
-  --frame-w: 2px;
+  --inner-gap: 50px;
+  --coord-gap: 21px;
+  --frame-w: 4px;
   --stone-r: 17px;
   --star-r: 4px;
   --coord-fs: 17px;
   --grid-span: 560px;
   --marker-r: 4px;
+  --line-width: 1px;
   font-family: Georgia, "Times New Roman", serif;
+  contain: layout style;
 }
 
 /* 棋盘主体 */
@@ -247,28 +250,28 @@ html, body {
 /* 坐标（在 board-main padding 区内绝对定位，与网格线对齐） */
 .coord-label {
   position: absolute;
-  color: #561102;
+  color: var(--line-color);
   font-size: var(--coord-fs);
   pointer-events: none;
   line-height: 1;
 }
 .coord-top {
-  top: calc(var(--inner-gap) / 2);
+  top: calc(var(--inner-gap) - var(--coord-gap));
   left: calc(var(--inner-gap) + var(--idx) * var(--cell-size));
   transform: translate(-50%, -50%);
 }
 .coord-bottom {
-  top: calc(var(--inner-gap) + var(--grid-span) + var(--inner-gap) / 2);
+  top: calc(var(--inner-gap) + var(--grid-span) + var(--coord-gap));
   left: calc(var(--inner-gap) + var(--idx) * var(--cell-size));
   transform: translate(-50%, -50%);
 }
 .coord-left {
-  left: calc(var(--inner-gap) / 2);
+  left: calc(var(--inner-gap) - var(--coord-gap));
   top: calc(var(--inner-gap) + var(--idx) * var(--cell-size));
   transform: translate(-50%, -50%);
 }
 .coord-right {
-  right: calc(var(--inner-gap) / 2);
+  right: calc(var(--inner-gap) - var(--coord-gap));
   top: calc(var(--inner-gap) + var(--idx) * var(--cell-size));
   transform: translate(50%, -50%);
 }
@@ -278,24 +281,35 @@ html, body {
   position: relative;
   width:  var(--grid-span);
   height: var(--grid-span);
-  background-image:
-    repeating-linear-gradient(to right,
-      #561102 0px, #561102 1.1px,
-      transparent 0px, transparent var(--cell-size)),
-    repeating-linear-gradient(to bottom,
-      #561102 0px, #561102 1.1px,
-      transparent 0px, transparent var(--cell-size));
+  outline: var(--frame-w) solid var(--line-color);
+
+  background:
+    linear-gradient(to right,
+      transparent 0,
+      transparent calc(50% - var(--line-width) / 2),
+      var(--line-color) calc(50% - var(--line-width) / 2),
+      var(--line-color) calc(50% + var(--line-width) / 2),
+      transparent calc(50% + var(--line-width) / 2),
+      transparent 100%
+    ),
+    linear-gradient(to bottom,
+      transparent 0,
+      transparent calc(50% - var(--line-width) / 2),
+      var(--line-color) calc(50% - var(--line-width) / 2),
+      var(--line-color) calc(50% + var(--line-width) / 2),
+      transparent calc(50% + var(--line-width) / 2),
+      transparent 100%
+    );
+
+  background-size: var(--cell-size) 100%, 100% var(--cell-size);
+  background-repeat: repeat;
+
+  background-position:
+    calc(var(--cell-size) / -2) 0,
+    0 calc(var(--cell-size) / -2);
 }
 
-/* 外框线（覆盖在网格边缘） */
-.board-frame {
-  position: absolute;
-  inset: 0;
-  border: var(--frame-w) solid #561102;
-  pointer-events: none;
-}
-
-/* 星位 */
+/* 星位 — 交叉点正中 */
 .star-point {
   position: absolute;
   left: calc(var(--sx) * var(--cell-size));
@@ -303,7 +317,7 @@ html, body {
   width:  calc(var(--star-r) * 2);
   height: calc(var(--star-r) * 2);
   border-radius: 50%;
-  background: #561102;
+  background: var(--line-color);
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
@@ -365,7 +379,7 @@ html, body {
   padding: 0 10px;
   font-size: 1rem;
   background: rgba(255,255,255,0.82);
-  color: #561102;
+  color: var(--line-color);
   border: 1px solid #c4a882;
   border-radius: 6px;
   cursor: pointer;
@@ -410,7 +424,7 @@ html, body {
 }
 .notation-panel h3 {
   font-size: 1rem;
-  color: #561102;
+  color: var(--line-color);
   margin: 0 0 6px 0;
   text-align: center;
   font-family: Georgia, "Times New Roman", serif;
@@ -442,7 +456,7 @@ html, body {
   font-size: 1rem;
   margin-bottom: 8px;
   font-weight: bold;
-  color: #561102;
+  color: var(--line-color);
   font-family: Georgia, "Times New Roman", serif;
 }
 
@@ -647,6 +661,7 @@ button:hover {
 }
 
 body {
+  --line-color: #561102;
   display: flex;
   justify-content: center;
   align-items: center;
