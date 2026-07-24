@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>灵弈五子棋 · AI 思维可视化</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 多图层背景（全局） -->
+    <div id="bgLayers">
+      <img src="assets/images/bg.png"    class="bg-layer bg-base"  alt="">
+      <img src="assets/images/bg-D.png"  class="bg-layer bg-down"  alt="">
+      <img src="assets/images/bg-L.png"  class="bg-layer bg-left"  alt="">
+      <img src="assets/images/bg-RU.png" class="bg-layer bg-right" alt="">
+    </div>
+    <!-- 首页 -->
+    <div id="homePage" class="page active">
+      <div class="white-cover" id="whiteCover"></div>
+      <div class="home-content">
+        <span class="welcome-text" id="welcomeText">欢迎来到</span>
+        <h1>灵弈五子棋</h1>
+        <div class="home-buttons" id="homeButtons">
+          <button class="mode-btn" id="btnAI">人机对弈</button>
+          <button class="mode-btn" id="btnTwoPlayer">双人对弈</button>
+          <button class="mode-btn mode-btn-rules" id="btnRules">对弈规则</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 游戏页（默认隐藏） -->
+    <div id="gamePage" class="page">
+      <div class="game-layout" id="gameLayout">
+        <!-- 棋盘区 -->
+        <div class="board-area" id="boardArea">
+          <div id="boardWrapper"></div>
+          <div class="quick-bar" id="quickBar">
+            <button class="qbtn" id="btnMenu" data-tip="菜单"><span class="qbtn-icon">⋮</span><span class="qbtn-label">菜单</span></button>
+            <button class="qbtn" id="btnFocus" data-tip="专注"><span class="qbtn-icon">◉</span><span class="qbtn-label">专注</span></button>
+            <button class="qbtn" id="btnHint" data-tip="提示"><span class="qbtn-icon">?</span><span class="qbtn-label">提示</span></button>
+            <span class="focus-spacer"></span>
+            <button class="qbtn" id="btnUndo" data-tip="悔棋"><span class="qbtn-icon">↩</span><span class="qbtn-label">悔棋</span></button>
+            <button class="qbtn focus-only" id="btnDraw" data-tip="提和"><span class="qbtn-icon">↭</span><span class="qbtn-label">提和</span></button>
+            <button class="qbtn focus-only" id="btnResign" data-tip="认输"><span class="qbtn-icon">⚐</span><span class="qbtn-label">认输</span></button>
+          </div>
+        </div>
+        <!-- 右侧面板 -->
+        <div class="side-panel" id="sidePanel">
+          <div class="notation-panel">
+            <h3>记谱</h3>
+            <div class="notation-list" id="notationList">
+              <span class="notation-empty">等待落子...</span>
+            </div>
+          </div>
+          <div class="info-panel">
+            <p id="statusText">你的回合</p>
+            <button id="homeBtn">返回首页</button>
+          </div>
+        </div>
+      </div>
+      <!-- 菜单弹出层 -->
+      <div class="game-menu" id="gameMenu">
+        <button class="menu-item" id="menuExit"><span class="menu-icon">←</span><span class="menu-text">退出游戏</span></button>
+        <button class="menu-item" id="menuNewGame"><span class="menu-icon">↻</span><span class="menu-text">新游戏</span></button>
+        <button class="menu-item" id="menuDraw"><span class="menu-icon">↭</span><span class="menu-text">提和</span></button>
+        <button class="menu-item" id="menuResign"><span class="menu-icon">⚐</span><span class="menu-text">认输</span></button>
+      </div>
+    </div>
+
+    <!-- 规则页（默认隐藏） -->
+    <div id="rulesPage" class="page">
+      <div class="rules-card">
+        <h2>对弈规则</h2>
+        <div class="rules-body">
+          <p>五子棋是一种两人对弈的纯策略棋类游戏。</p>
+          <ul>
+            <li><strong>棋盘：</strong>15 × 15 标准棋盘</li>
+            <li><strong>先手：</strong>黑方先行</li>
+            <li><strong>胜负：</strong>先在横、竖、斜任一方向上连成五子者获胜</li>
+            <li><strong>回合：</strong>双方轮流在空位落子，不可重复落子</li>
+            <li><strong>平局：</strong>棋盘满子且无人连成五子即为平局</li>
+          </ul>
+        </div>
+        <button id="rulesBackBtn">返回首页</button>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

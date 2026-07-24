@@ -1,0 +1,656 @@
+/* ---------- 容器撑满 ---------- */
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+#app {
+  width: 100%;
+  height: 100vh;
+}
+
+/* ---------- 页面切换通用 ---------- */
+.page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.page.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ---------- 多图层背景（全局） ---------- */
+#bgLayers {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  /* 无 z-index，靠 DOM 顺序在页面之下 */
+}
+.bg-layer {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+}
+/* 底层: bg.png — 拉伸适应界面 */
+.bg-base {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* bg-D.png — 下对齐，适应宽度，保持纵横比 */
+.bg-down {
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  transform-origin: top center;
+  transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+#bgLayers.game-mode .bg-down {
+  transform: scale(1.36412078152753);
+}
+/* bg-L.png — 左对齐，下界=水平中线，上界=页面上界，保持纵横比 */
+.bg-left {
+  left: 0;
+  top: 0;
+  height: 50vh;
+  width: auto;
+}
+/* bg-RU.png — 右上对齐，高度=页面高度的40%，保持纵横比 */
+.bg-right {
+  right: 0;
+  top: 0;
+  height: 40vh;
+  width: auto;
+}
+
+/* ---------- 首页 ---------- */
+#homePage {
+  /* position 由 .page 统一为 absolute */
+  overflow: hidden;
+}
+
+/* ---------- 白色遮罩层（遮盖背景） ---------- */
+.white-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: #000000b0;
+  pointer-events: none;
+  transition: opacity 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.white-cover.hidden {
+  opacity: 0;
+}
+
+/* ---------- 欢迎语 (单一元素) ---------- */
+.welcome-text {
+  font-size: 2.5rem;
+  color: #fff;
+  text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+  opacity: 0;
+  white-space: nowrap;
+  transition: opacity 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Phase 激活全部过渡：位置 + 字号 */
+#homePage.transition-all .welcome-text {
+  transition: opacity 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              transform 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              font-size 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ---------- 内容层 ---------- */
+.home-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 40px;
+  background: transparent;
+  transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ---------- 内容元素动画 ---------- */
+#homePage h1 {
+  opacity: 0;
+  font-size: 3rem;
+  transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              font-size 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+#homePage.show-title h1 {
+  opacity: 1;
+}
+
+/* ---------- 首页按钮组 ---------- */
+.home-buttons {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.home-buttons .mode-btn {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              background 0.2s;
+}
+#homePage.show-content .home-buttons .mode-btn {
+  opacity: 1;
+  transform: translateY(0);
+}
+#homePage.show-content .home-content {
+  transform: translateY(-50px);
+}
+
+/* Phase ④：欢迎语淡出消失 */
+#homePage.show-content .welcome-text {
+  opacity: 0 !important;
+}
+
+/* ---------- Phase ②+③ 大字居中态 ---------- */
+#homePage.larger-center .home-content {
+  transform: translateY(30px);
+}
+#homePage.larger-center .welcome-text {
+  font-size: 3rem;
+}
+#homePage.larger-center h1 {
+  font-size: 3.5rem;
+}
+
+/* 文字可读性增强 */
+.home-content h1 {
+  font-size: 3rem;
+  color: transparent;
+  background-image: radial-gradient(circle, rgba(117, 62, 20, 1) 0%, rgba(62, 27, 5, 1) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* ---------- 首页按钮 ---------- */
+.mode-btn {
+  padding: 14px 36px;
+  font-size: 1.3rem;
+  border: 2px solid #c4af86;
+  border-radius: 30px;
+  background: #fff9e829;
+  color: #5c4a38;
+  cursor: pointer;
+  /* text-shadow: 1px 1px 4px rgba(0,0,0,0.7); */
+  transition: transform 0.2s, background 0.2s;
+}
+.mode-btn:hover {
+  background: #fff9e87d;
+  transform: scale(0.5);
+}
+/* .mode-btn-rules {
+  border-color: rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.06);
+} */
+
+/* ---------- 游戏页 ---------- */
+.game-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+/* 棋盘区 — 完全透明 */
+.board-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+}
+
+/* ======== CSS 棋盘渲染 ======== */
+.board-wrapper {
+  --cell-size: 40px;
+  --inner-gap: 24px;
+  --frame-w: 2px;
+  --stone-r: 17px;
+  --star-r: 4px;
+  --coord-fs: 17px;
+  --grid-span: 560px;
+  --marker-r: 4px;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+/* 棋盘主体 */
+.board-main {
+  position: relative;
+  padding: var(--inner-gap);
+  background: url('../assets/images/board_bg.png') center/cover;
+  line-height: 0;
+}
+
+/* 坐标（在 board-main padding 区内绝对定位，与网格线对齐） */
+.coord-label {
+  position: absolute;
+  color: #561102;
+  font-size: var(--coord-fs);
+  pointer-events: none;
+  line-height: 1;
+}
+.coord-top {
+  top: calc(var(--inner-gap) / 2);
+  left: calc(var(--inner-gap) + var(--idx) * var(--cell-size));
+  transform: translate(-50%, -50%);
+}
+.coord-bottom {
+  top: calc(var(--inner-gap) + var(--grid-span) + var(--inner-gap) / 2);
+  left: calc(var(--inner-gap) + var(--idx) * var(--cell-size));
+  transform: translate(-50%, -50%);
+}
+.coord-left {
+  left: calc(var(--inner-gap) / 2);
+  top: calc(var(--inner-gap) + var(--idx) * var(--cell-size));
+  transform: translate(-50%, -50%);
+}
+.coord-right {
+  right: calc(var(--inner-gap) / 2);
+  top: calc(var(--inner-gap) + var(--idx) * var(--cell-size));
+  transform: translate(50%, -50%);
+}
+
+/* 网格层 */
+.board-grid {
+  position: relative;
+  width:  var(--grid-span);
+  height: var(--grid-span);
+  background-image:
+    repeating-linear-gradient(to right,
+      #561102 0px, #561102 1.1px,
+      transparent 0px, transparent var(--cell-size)),
+    repeating-linear-gradient(to bottom,
+      #561102 0px, #561102 1.1px,
+      transparent 0px, transparent var(--cell-size));
+}
+
+/* 外框线（覆盖在网格边缘） */
+.board-frame {
+  position: absolute;
+  inset: 0;
+  border: var(--frame-w) solid #561102;
+  pointer-events: none;
+}
+
+/* 星位 */
+.star-point {
+  position: absolute;
+  left: calc(var(--sx) * var(--cell-size));
+  top:  calc(var(--sy) * var(--cell-size));
+  width:  calc(var(--star-r) * 2);
+  height: calc(var(--star-r) * 2);
+  border-radius: 50%;
+  background: #561102;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* 棋子层 */
+.stones-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* 棋子 */
+.stone {
+  position: absolute;
+  left: calc(var(--sx) * var(--cell-size));
+  top:  calc(var(--sy) * var(--cell-size));
+  width:  calc(var(--stone-r) * 2);
+  height: calc(var(--stone-r) * 2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.stone-black {
+  background: radial-gradient(circle at 35% 35%, #555, #111);
+  box-shadow: 1.5px 1.5px 3px rgba(0,0,0,0.35);
+}
+.stone-white {
+  background: radial-gradient(circle at 35% 35%, #fff, #c8c8c8);
+  box-shadow: 1.5px 1.5px 3px rgba(0,0,0,0.35);
+}
+
+/* 最后一手红点 */
+.last-marker {
+  position: absolute;
+  left: calc(var(--sx) * var(--cell-size));
+  top:  calc(var(--sy) * var(--cell-size));
+  width:  calc(var(--marker-r) * 2);
+  height: calc(var(--marker-r) * 2);
+  border-radius: 50%;
+  background: #e33;
+  transform: translate(-50%, -50%);
+}
+
+/* 提示标记 */
+.hint-marker {
+  position: absolute;
+  left: calc(var(--sx) * var(--cell-size));
+  top:  calc(var(--sy) * var(--cell-size));
+  width:  calc(var(--stone-r) * 0.56);
+  height: calc(var(--stone-r) * 0.56);
+  border-radius: 50%;
+  background: rgba(220,80,40,0.55);
+  border: 1.5px solid rgba(180,50,20,0.7);
+  transform: translate(-50%, -50%);
+}
+
+/* 图标按钮 */
+.qbtn {
+  height: 40px;
+  padding: 0 10px;
+  font-size: 1rem;
+  background: rgba(255,255,255,0.82);
+  color: #561102;
+  border: 1px solid #c4a882;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: background 0.2s, transform 0.2s;
+  flex-shrink: 0;
+  position: relative;
+  white-space: nowrap;
+}
+.qbtn:hover {
+  background: #fff;
+}
+.qbtn-icon { font-size: 1.15rem; }
+.qbtn-label { font-size: 0.9rem; }
+
+/* 快捷栏（横排） */
+.quick-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ---- 右侧面板 ---- */
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 145px;
+  max-width: 175px;
+  flex-shrink: 0;
+}
+.notation-panel {
+  background: rgba(255,255,255,0.86);
+  border-radius: 10px;
+  padding: 12px;
+  max-height: 380px;
+  display: flex;
+  flex-direction: column;
+}
+.notation-panel h3 {
+  font-size: 1rem;
+  color: #561102;
+  margin: 0 0 6px 0;
+  text-align: center;
+  font-family: Georgia, "Times New Roman", serif;
+  border-bottom: 1px solid #cfbba0;
+  padding-bottom: 5px;
+}
+.notation-list {
+  flex: 1;
+  overflow-y: auto;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.88rem;
+  color: #3a2a1a;
+  line-height: 1.7;
+  max-height: 320px;
+}
+.notation-list .move-pair { display: flex; gap: 3px; }
+.notation-list .move-num { color: #8b7355; min-width: 22px; text-align: right; margin-right: 3px; }
+.notation-list .move-black,
+.notation-list .move-white { min-width: 38px; }
+.notation-empty { color: #b5a590; font-style: italic; }
+
+.info-panel {
+  text-align: center;
+  background: rgba(255,255,255,0.86);
+  border-radius: 10px;
+  padding: 12px;
+}
+.info-panel p {
+  font-size: 1rem;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #561102;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+/* ---- 菜单弹出 ---- */
+.game-menu {
+  position: absolute;
+  background: rgba(255,255,255,0.96);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  padding: 4px 0;
+  z-index: 30;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.game-menu.open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  background: transparent;
+  color: #3a2a1a;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  font-family: 'Segoe UI', sans-serif;
+  transition: background 0.15s;
+}
+.menu-item:hover {
+  background: #f5ede0;
+}
+.menu-icon {
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+.menu-text {
+  text-align: left;
+  flex: 1;
+}
+
+/* ======== 专注模式 ======== */
+.focus-only { display: none; }
+.focus-spacer { display: none; }
+
+/* ---- 过渡 ---- */
+.side-panel {
+  transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              opacity 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              max-width 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              min-width 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              margin 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              padding 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.board-area {
+  transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.quick-bar {
+  transition: padding 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              gap 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.qbtn {
+  transition: width 0.35s ease, height 0.35s ease, padding 0.35s ease,
+              background 0.2s, transform 0.2s;
+}
+
+/* ---- 专注：侧栏滑出 + 宽度塌陷 ---- */
+#gamePage.focus-mode .side-panel {
+  transform: translateX(130%);
+  opacity: 0;
+  max-width: 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  pointer-events: none;
+  flex-shrink: 1;
+}
+
+/* ---- 专注：棋盘区居中放大 ---- */
+#gamePage.focus-mode .board-area {
+  flex-direction: row;
+  align-items: stretch;
+  gap: 10px;
+  flex: 1;
+  justify-content: center;
+}
+
+/* ---- 专注：快捷栏竖排，适应窗口高度，上下留白半个按钮 ---- */
+#gamePage.focus-mode .quick-bar {
+  flex-direction: column;
+  gap: 6px;
+  padding: 22px 0;            /* 半个按钮高度 */
+  box-sizing: border-box;
+}
+
+/* ---- 专注：可见性 ---- */
+#gamePage.focus-mode .focus-only {
+  display: flex;
+}
+#gamePage.focus-mode .focus-spacer {
+  display: block;
+  flex: 1;
+}
+#gamePage.focus-mode #btnHint {
+  display: none;
+}
+
+/* ---- 专注：正方形纯图标 ---- */
+#gamePage.focus-mode .qbtn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  justify-content: center;
+}
+#gamePage.focus-mode .qbtn-label {
+  display: none;
+}
+/* 专注：悬浮 tooltip（右侧弹出） */
+#gamePage.focus-mode .qbtn:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: calc(100% + 6px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.78);
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 20;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* ---------- 规则页 ---------- */
+.rules-card {
+  background: rgba(255,255,255,0.92);
+  border-radius: 16px;
+  padding: 40px 48px;
+  max-width: 480px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  backdrop-filter: blur(8px);
+}
+.rules-card h2 {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin-bottom: 20px;
+}
+.rules-body {
+  text-align: left;
+  color: #333;
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+.rules-body ul {
+  margin-top: 12px;
+  padding-left: 20px;
+}
+.rules-body li {
+  margin-bottom: 6px;
+}
+.rules-card button {
+  margin-top: 24px;
+}
+
+/* ---------- 通用按钮 ---------- */
+button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background: #2980b9;
+}
+
+/* ---------- 全局 ---------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #2c3e50;
+  font-family: 'Segoe UI', sans-serif;
+}
