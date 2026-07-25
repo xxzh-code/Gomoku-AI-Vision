@@ -11,7 +11,7 @@ export class GameController {
   constructor(board, renderer, statusElement, mode = 'ai') {
     this.board = board;
     this.renderer = renderer;
-    this.statusEl = statusElement;
+    this.statusEl = statusElement || { textContent: '' };
     this.mode = mode;
     this.isAIThinking = false;
     this.onUpdate = null;   // 外部回调(board) → 记谱刷新

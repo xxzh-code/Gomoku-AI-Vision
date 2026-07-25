@@ -405,59 +405,148 @@ html, body {
   align-items: center;
 }
 
-/* ---- 右侧面板 ---- */
+/* ---- 右侧面板（固定高度=棋盘高度）---- */
 .side-panel {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  min-width: 145px;
-  max-width: 175px;
+  width: 195px;
   flex-shrink: 0;
-}
-.notation-panel {
-  background: rgba(255,255,255,0.86);
+  background: rgba(255,255,255,0.88);
   border-radius: 10px;
-  padding: 12px;
-  max-height: 380px;
-  display: flex;
-  flex-direction: column;
+  overflow: hidden;
 }
-.notation-panel h3 {
-  font-size: 1rem;
-  color: var(--line-color);
-  margin: 0 0 6px 0;
-  text-align: center;
-  font-family: Georgia, "Times New Roman", serif;
-  border-bottom: 1px solid #cfbba0;
-  padding-bottom: 5px;
-}
-.notation-list {
-  flex: 1;
-  overflow-y: auto;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 0.88rem;
-  color: #3a2a1a;
-  line-height: 1.7;
-  max-height: 320px;
-}
-.notation-list .move-pair { display: flex; gap: 3px; }
-.notation-list .move-num { color: #8b7355; min-width: 22px; text-align: right; margin-right: 3px; }
-.notation-list .move-black,
-.notation-list .move-white { min-width: 38px; }
-.notation-empty { color: #b5a590; font-style: italic; }
 
-.info-panel {
-  text-align: center;
-  background: rgba(255,255,255,0.86);
-  border-radius: 10px;
-  padding: 12px;
+/* 执子信息 */
+.turn-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
 }
-.info-panel p {
-  font-size: 1rem;
-  margin-bottom: 8px;
+.turn-stone {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.turn-stone.black {
+  background: radial-gradient(circle at 35% 35%, #555, #111);
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.35);
+}
+.turn-stone.white {
+  background: radial-gradient(circle at 35% 35%, #fff, #c8c8c8);
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.35);
+}
+/* 和局：半黑半白拼凑 */
+.turn-stone.split {
+  background:
+    radial-gradient(circle at 35% 35%, #555, #111) left,
+    radial-gradient(circle at 35% 35%, #fff, #c8c8c8) right;
+  background-size: 50% 100%;
+  background-repeat: no-repeat;
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.35);
+}
+.turn-text {
+  font-size: 1.05rem;
   font-weight: bold;
   color: var(--line-color);
   font-family: Georgia, "Times New Roman", serif;
+  transition: opacity 0.2s ease;
+}
+/* 记谱行过渡 */
+.notation-row {
+  transition: background 0.2s ease;
+}
+.notation-black,
+.notation-white {
+  transition: opacity 0.2s ease;
+}
+/* 分割线 */
+.panel-divider {
+  height: 1px;
+  background: #cfbba0;
+  margin: 0 14px;
+  flex-shrink: 0;
+}
+
+/* 记谱区 */
+.notation-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 14px 14px;
+}
+.notation-table {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.88rem;
+  color: #3a2a1a;
+  line-height: 1.6;
+  display: table;
+  width: 100%;
+}
+.notation-empty {
+  color: #b5a590;
+  font-style: italic;
+  display: table-caption;
+}
+
+/* 记谱行 */
+.notation-row {
+  display: table-row;
+}
+.notation-row:nth-child(even) {
+  background: rgba(180,160,130,0.18);
+}
+.notation-row > span {
+  display: table-cell;
+  padding: 2px 4px;
+  vertical-align: middle;
+}
+.notation-num {
+  width: 24px;
+  text-align: right;
+  color: #8b7355;
+  white-space: nowrap;
+}
+.notation-black,
+.notation-white {
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* CSS 圈号/胶囊 */
+.move-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  font-size: 0.75rem;
+  font-weight: bold;
+  line-height: 1;
+  min-width: 1.5em;
+  height: 1.5em;
+  padding: 0 0.15em;
+  border-radius: 50%;
+  flex-shrink: 0;
+  font-family: 'Segoe UI', sans-serif;
+  box-sizing: border-box;
+}
+/* 黑着：实心填充 */
+.move-badge.black {
+  background: #222;
+  color: #eee;
+}
+/* 白着：空心描边 */
+.move-badge.white {
+  background: transparent;
+  color: #3a2a1a;
+  border: 1.3px solid #666;
+}
+/* 多位数 → 胶囊形 */
+.move-badge.capsule {
+  border-radius: 1em;
+  padding: 0 0.35em;
 }
 
 /* ---- 菜单弹出 ---- */
@@ -516,9 +605,9 @@ html, body {
 
 /* ---- 过渡 ---- */
 .side-panel {
-  transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              opacity 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+  transition: opacity 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
               max-width 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              width 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
               min-width 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
               margin 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
               padding 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -535,12 +624,12 @@ html, body {
               background 0.2s, transform 0.2s;
 }
 
-/* ---- 专注：侧栏滑出 + 宽度塌陷 ---- */
+/* ---- 专注：侧栏淡出 + 宽度塌陷 ---- */
 #gamePage.focus-mode .side-panel {
-  transform: translateX(130%);
   opacity: 0;
   max-width: 0;
   min-width: 0;
+  width: 0 !important;
   margin: 0;
   padding: 0;
   overflow: hidden;

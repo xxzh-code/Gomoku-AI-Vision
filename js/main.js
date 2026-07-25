@@ -58,8 +58,9 @@ const gamePage     = document.getElementById('gamePage');
 const rulesPage    = document.getElementById('rulesPage');
 const bgLayers     = document.getElementById('bgLayers');
 const homeBtn      = document.getElementById('homeBtn');
-const statusEl     = document.getElementById('statusText');
-const notationList = document.getElementById('notationList');
+const notationTable = document.getElementById('notationTable');
+const turnStoneEl   = document.getElementById('turnStone');
+const turnTextEl    = document.getElementById('turnText');
 
 // 快捷栏按钮
 const btnMenu   = document.getElementById('btnMenu');
@@ -102,8 +103,9 @@ function startGame(mode) {
   const wrapper = document.getElementById('boardWrapper');
   renderer = new BoardRenderer(wrapper);
   renderer.hintPos = null;
-  controller = new GameController(board, renderer, statusEl, mode);
+  controller = new GameController(board, renderer, null, mode);
   controller.onUpdate = (b) => {
+    updateTurnInfo(b);
     updateNotation(b);
     if (renderer) renderer.hintPos = null;
   };
@@ -205,29 +207,64 @@ btnHint.addEventListener('click', () => {
   }
 });
 
-// ---------- 记谱 ----------
+// ---------- 执子信息 ----------
+function updateTurnInfo(board) {
+  const hist = board.moveHistory;
+  const cp   = board.currentPlayer;
+  const over = board.isGameOver();
+
+  if (over && board.drawAgreed) {
+    // 和局：拼凑棋子
+    turnStoneEl.className = 'turn-stone split';
+    turnTextEl.textContent = '和局';
+  } else if (over && board.winner) {
+    // 胜局：显示胜方
+    turnStoneEl.className = 'turn-stone ' + (board.winner === 1 ? 'black' : 'white');
+    turnTextEl.textContent = board.winner === 1 ? '黑方胜' : '白方胜';
+  } else {
+    // 对局中
+    turnStoneEl.className = 'turn-stone ' + (cp === 1 ? 'black' : 'white');
+    if (hist.length === 0) {
+      turnTextEl.textContent = '黑先行';
+    } else if (hist.length === 1) {
+      turnTextEl.textContent = '白后手';
+    } else {
+      turnTextEl.textContent = cp === 1 ? '黑行棋' : '白行棋';
+    }
+  }
+}
+
+// ---------- 记谱（CSS 圈号/胶囊：黑着实心，白着空心）----------
+function badgeHTML(n, color) {
+  const capsule = n >= 10 ? ' capsule' : '';
+  return `<span class="move-badge ${color}${capsule}">${n}</span>`;
+}
+
 function updateNotation(board) {
   const hist = board.moveHistory;
   if (hist.length === 0) {
-    notationList.innerHTML = '<span class="notation-empty">等待落子...</span>';
+    notationTable.innerHTML = '<span class="notation-empty">等待落子...</span>';
     return;
   }
   let html = '';
   for (let i = 0; i < hist.length; i += 2) {
     const round = Math.floor(i / 2) + 1;
-    const black = BoardRenderer.notation(hist[i].x, hist[i].y);
+    const bn = i + 1;
+    const bBadge = badgeHTML(bn, 'black');
+    const black = bBadge + BoardRenderer.notation(hist[i].x, hist[i].y);
     const white = (i + 1 < hist.length)
-      ? BoardRenderer.notation(hist[i + 1].x, hist[i + 1].y)
+      ? badgeHTML(bn + 1, 'white') + BoardRenderer.notation(hist[i + 1].x, hist[i + 1].y)
       : '';
-    html += `<div class="move-pair">`
-      + `<span class="move-num">${round}.</span>`
-      + `<span class="move-black">● ${black}</span>`
-      + (white ? `<span class="move-white">○ ${white}</span>` : '')
+    html += `<div class="notation-row">`
+      + `<span class="notation-num">${round}.</span>`
+      + `<span class="notation-black">${black}</span>`
+      + `<span class="notation-white">${white}</span>`
       + `</div>`;
   }
-  notationList.innerHTML = html;
-  notationList.scrollTop = notationList.scrollHeight;
+  notationTable.innerHTML = html;
+  const scroll = document.getElementById('notationScroll');
+  if (scroll) scroll.scrollTop = scroll.scrollHeight;
 }
 
-homeBtn.addEventListener('click', goHome);
+if (homeBtn) homeBtn.addEventListener('click', goHome);
 rulesBackBtn.addEventListener('click', goHome);

@@ -115,6 +115,12 @@ export class BoardRenderer {
     s.setProperty('--coord-fs',   coordFS + 'px');
     s.setProperty('--grid-span',  gridSpan + 'px');
     s.setProperty('--marker-r',   Math.max(3, stoneR * 0.22) + 'px');
+
+    // 侧栏高度同步棋盘
+    const sidePanel = document.getElementById('sidePanel');
+    if (sidePanel) {
+      sidePanel.style.height = (innerGap * 2 + gridSpan) + 'px';
+    }
   }
 
   onResize() {
