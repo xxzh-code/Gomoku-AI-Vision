@@ -2,11 +2,20 @@ import { BOARD_SIZE, PLAYER_BLACK, PLAYER_WHITE } from '../constants.js';
 
 const COL_LABELS = 'ABCDEFGHIJKLMNO';
 const STAR_POS   = [[7,7],[3,3],[3,11],[11,3],[11,11]];
+const BLACK_SVGS = Array.from({length:10}, (_,i) => `assets/images/stones/black/B${i+1}.svg`);
+const WHITE_SVGS = Array.from({length:10}, (_,i) => `assets/images/stones/white/W${i+1}.svg`);
+const SHADOW_SVG = 'assets/images/stones/shadow.svg';
+
+function randomStone(color) {
+  const list = color === PLAYER_BLACK ? BLACK_SVGS : WHITE_SVGS;
+  return list[Math.floor(Math.random() * list.length)];
+}
 
 export class BoardRenderer {
   constructor(container) {
     this.container = container;
     this.cellSize = 40;
+    this.innerGap = 50;
 
     this._buildDOM();
     this.computeLayout();
@@ -14,19 +23,41 @@ export class BoardRenderer {
     this._pendingLayout = false;
 
     this.onCellClick = null;
-    this.boardGrid.addEventListener('click', (e) => {
-      if (!this.onCellClick) return;
-      const rect = this.boardGrid.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
-      const x = Math.round(mx / this.cellSize);
-      const y = Math.round(my / this.cellSize);
-      if (x >= 0 && x < BOARD_SIZE && y >= 0 && y < BOARD_SIZE) {
-        this.onCellClick(x, y);
+    this._hoverCell = null;
+
+    this.boardMain.addEventListener('click', (e) => {
+      const p = this._eventToCell(e);
+      if (p && this.onCellClick) this.onCellClick(p.x, p.y);
+    });
+    this.boardMain.addEventListener('mousemove', (e) => {
+      const p = this._eventToCell(e);
+      if (p && (!this._hoverCell || this._hoverCell.x !== p.x || this._hoverCell.y !== p.y)) {
+        this._hoverCell = p;
+        // 已落子位置不显示预览
+        const occupied = this._lastBoard && this._lastBoard.grid[p.y][p.x] !== 0;
+        if (occupied) { this._hidePreview(); }
+        else { this._updatePreview(p.x, p.y); }
+      } else if (!p && this._hoverCell) {
+        this._hoverCell = null;
+        this._hidePreview();
       }
+    });
+    this.boardMain.addEventListener('mouseleave', () => {
+      this._hoverCell = null;
+      this._hidePreview();
     });
 
     this._hintPos = null;
+  }
+
+  _eventToCell(e) {
+    const rect = this.boardMain.getBoundingClientRect();
+    const mx = e.clientX - rect.left - this.innerGap;
+    const my = e.clientY - rect.top  - this.innerGap;
+    const x = Math.round(mx / this.cellSize);
+    const y = Math.round(my / this.cellSize);
+    if (x >= 0 && x < BOARD_SIZE && y >= 0 && y < BOARD_SIZE) return { x, y };
+    return null;
   }
 
   _buildDOM() {
@@ -34,10 +65,8 @@ export class BoardRenderer {
     this.container.classList.add('board-wrapper');
 
     this.boardMain = el('div','board-main');
-
     this.boardGrid = el('div','board-grid');
 
-    // 星位 — 精确定位在交叉点中心
     STAR_POS.forEach(([cx,cy]) => {
       const s = el('span','star-point');
       s.style.setProperty('--sx', cx);
@@ -45,20 +74,43 @@ export class BoardRenderer {
       this.boardGrid.appendChild(s);
     });
 
-    // 棋子层
+    // 阴影层（底层）
+    this.shadowsLayer = el('div','shadows-layer');
+    this._shadows = [];
+    for (let y = 0; y < BOARD_SIZE; y++) {
+      this._shadows[y] = [];
+      for (let x = 0; x < BOARD_SIZE; x++) {
+        const s = el('img','stone-shadow');
+        s.src = SHADOW_SVG;
+        s.alt = '';
+        s.style.display = 'none';
+        s.style.setProperty('--sx', x);
+        s.style.setProperty('--sy', y);
+        this.shadowsLayer.appendChild(s);
+        this._shadows[y][x] = s;
+      }
+    }
+    this.boardGrid.appendChild(this.shadowsLayer);
+
+    // 棋子层（上层）
     this.stonesLayer = el('div','stones-layer');
     this._stones = [];
+    this._stoneSrcs = [];   // 记录每格已选的 SVG
     for (let y = 0; y < BOARD_SIZE; y++) {
       this._stones[y] = [];
+      this._stoneSrcs[y] = [];
       for (let x = 0; x < BOARD_SIZE; x++) {
-        const s = el('div','stone');
+        const s = el('img','stone-img');
+        s.alt = '';
         s.style.display = 'none';
         s.style.setProperty('--sx', x);
         s.style.setProperty('--sy', y);
         this.stonesLayer.appendChild(s);
         this._stones[y][x] = s;
+        this._stoneSrcs[y][x] = null;
       }
     }
+
     this.lastMarker = el('div','last-marker');
     this.lastMarker.style.display = 'none';
     this.stonesLayer.appendChild(this.lastMarker);
@@ -66,10 +118,18 @@ export class BoardRenderer {
     this.hintMarker.style.display = 'none';
     this.stonesLayer.appendChild(this.hintMarker);
 
+    // 预览（棋子+阴影，初始隐藏）
+    this.pvShadow = el('img','stone-shadow stone-pv'); this.pvShadow.src = SHADOW_SVG; this.pvShadow.alt = '';
+    this.pvShadow.style.display = 'none';
+    this.shadowsLayer.appendChild(this.pvShadow);
+    this.pvImg = el('img','stone-img stone-pv'); this.pvImg.alt = '';
+    this.pvImg.style.display = 'none';
+    this.stonesLayer.appendChild(this.pvImg);
+    this._pvVisible = false;
+
     this.boardGrid.appendChild(this.stonesLayer);
     this.boardMain.appendChild(this.boardGrid);
 
-    // 四边坐标
     for (let i = 0; i < BOARD_SIZE; i++) {
       const t = el('span','coord-label coord-top');    t.textContent = COL_LABELS[i]; t.style.setProperty('--idx', i); this.boardMain.appendChild(t);
       const b = el('span','coord-label coord-bottom'); b.textContent = COL_LABELS[i]; b.style.setProperty('--idx', i); this.boardMain.appendChild(b);
@@ -80,15 +140,58 @@ export class BoardRenderer {
     this.container.appendChild(this.boardMain);
   }
 
+  _updatePreview(x, y) {
+    const ts = document.getElementById('turnStone');
+    const isBlack = ts && ts.classList.contains('black');
+    this.pvImg.src = isBlack ? BLACK_SVGS[0] : WHITE_SVGS[0];
+    const tx = (x * this.cellSize) + 'px';
+    const ty = (y * this.cellSize) + 'px';
+    const t = `translate(calc(${tx} - 50%), calc(${ty} - 50%))`;
+    this.pvShadow.style.transform = t;
+    this.pvImg.style.transform = t;
+
+    // 取消正在进行的消失动画
+    if (this._pvTimer) { clearTimeout(this._pvTimer); this._pvTimer = null; }
+
+    if (!this._pvVisible) {
+      // 首次出现：先 display 再 opacity 淡入
+      this.pvShadow.style.display = '';
+      this.pvImg.style.display = '';
+      this.pvShadow.style.opacity = '0';
+      this.pvImg.style.opacity = '0';
+      this.pvShadow.classList.add('no-transition');
+      this.pvImg.classList.add('no-transition');
+      void this.pvImg.offsetWidth;
+      this.pvShadow.classList.remove('no-transition');
+      this.pvImg.classList.remove('no-transition');
+    }
+    this.pvShadow.style.opacity = '0.5';
+    this.pvImg.style.opacity = '0.5';
+    this._pvVisible = true;
+    this.boardMain.classList.add('preview-active');
+  }
+  _hidePreview() {
+    if (!this._pvVisible) return;
+    this._pvVisible = false;
+    this.boardMain.classList.remove('preview-active');
+    // 淡出 → 再 display:none
+    this.pvShadow.style.opacity = '0';
+    this.pvImg.style.opacity = '0';
+    this._pvTimer = setTimeout(() => {
+      this.pvShadow.style.display = 'none';
+      this.pvImg.style.display = 'none';
+      this._pvTimer = null;
+    }, 130);
+  }
+
   /* ======== 自适应 ======== */
   computeLayout() {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const isFocus = document.getElementById('gamePage')?.classList.contains('focus-mode');
-    // 专注：紧贴窗口边缘
     const availW = isFocus ? vw - 12  : vw - 210;
     const availH = isFocus ? vh - 12  : vh - 140;
-    const slots  = 2 * 1.25 + 2 * 0.528;  // innerGap*2(格) + coordGap*2(格) ≈ 3.556
+    const slots  = 2 * 1.25 + 2 * 0.528;
     const cs = Math.floor(Math.min(
       availW / (BOARD_SIZE - 1 + slots),
       availH / (BOARD_SIZE - 1 + slots)
@@ -96,10 +199,11 @@ export class BoardRenderer {
     this.cellSize = Math.max(28, Math.min(cs, 55));
 
     const cell      = this.cellSize;
-    const innerGap  = Math.round(cell * 1.25);           // 1.25 格
-    const stoneD    = cell * 0.44 * 2;                   // 棋子直径
-    const coordGap  = Math.round(stoneD * 0.8);           // 距网格 0.8 倍棋子直径
-    const frameW    = Math.max(2, Math.round(cell * 0.09)); // 描边粗度（比例）
+    const innerGap  = Math.round(cell * 1.25);
+    this.innerGap   = innerGap;
+    const stoneD    = cell * 0.44 * 2;
+    const coordGap  = Math.round(stoneD * 0.8);
+    const frameW    = Math.max(2, Math.round(cell * 0.09));
     const stoneR    = cell * 0.44;
     const starR     = Math.max(3, Math.round(cell * 0.1));
     const coordFS   = Math.max(13, Math.round(cell * 0.42));
@@ -116,7 +220,6 @@ export class BoardRenderer {
     s.setProperty('--grid-span',  gridSpan + 'px');
     s.setProperty('--marker-r',   Math.max(3, stoneR * 0.22) + 'px');
 
-    // 侧栏高度同步棋盘
     const sidePanel = document.getElementById('sidePanel');
     if (sidePanel) {
       sidePanel.style.height = (innerGap * 2 + gridSpan) + 'px';
@@ -133,7 +236,6 @@ export class BoardRenderer {
     }
   }
 
-  /* ======== 提示 ======== */
   set hintPos(pos) {
     this._hintPos = pos;
     if (pos) {
@@ -150,15 +252,35 @@ export class BoardRenderer {
 
   /* ======== 绘制 ======== */
   draw(board) {
+    this._lastBoard = board;
     const { grid, moveHistory } = board;
     const last = moveHistory.length > 0 ? moveHistory[moveHistory.length - 1] : null;
 
     for (let y = 0; y < BOARD_SIZE; y++) {
       for (let x = 0; x < BOARD_SIZE; x++) {
-        const s = this._stones[y][x];
+        const stone  = this._stones[y][x];
+        const shadow = this._shadows[y][x];
         const v = grid[y][x];
-        if (v === 0) { s.style.display = 'none'; s.className = 'stone'; }
-        else { s.style.display = ''; s.className = v === PLAYER_BLACK ? 'stone stone-black' : 'stone stone-white'; }
+        if (v === 0) {
+          stone.style.display = 'none';
+          shadow.style.display = 'none';
+          this._stoneSrcs[y][x] = null;
+        } else {
+          const wasHidden = stone.style.display === 'none';
+          stone.style.display = '';
+          shadow.style.display = '';
+          // 仅新落子随机选取，已有棋子保持原样
+          if (!this._stoneSrcs[y][x]) {
+            this._stoneSrcs[y][x] = randomStone(v);
+          }
+          stone.src = this._stoneSrcs[y][x];
+          if (wasHidden) {
+            stone.classList.remove('stone-drop');
+            void stone.offsetWidth;
+            stone.classList.add('stone-drop');
+            stone.addEventListener('animationend', () => stone.classList.remove('stone-drop'), { once: true });
+          }
+        }
       }
     }
 
@@ -169,6 +291,8 @@ export class BoardRenderer {
     } else {
       this.lastMarker.style.display = 'none';
     }
+
+    this._hidePreview();
   }
 }
 

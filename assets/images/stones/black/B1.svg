@@ -1,0 +1,44 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100.000000" height="100.000000" fill="none">
+	<defs>
+		<radialGradient id="paint_radial_45" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,-50,50,0,50,50)">
+			<stop stop-color="rgb(120,125,133)" offset="0" stop-opacity="1" />
+			<stop stop-color="rgb(72,76,83)" offset="0.180000007" stop-opacity="1" />
+			<stop stop-color="rgb(36,39,45)" offset="0.449999988" stop-opacity="1" />
+			<stop stop-color="rgb(19,21,25)" offset="0.75" stop-opacity="1" />
+			<stop stop-color="rgb(8,9,12)" offset="1" stop-opacity="1" />
+		</radialGradient>
+		<radialGradient id="paint_radial_46" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,-50,50,0,50,50)">
+			<stop stop-color="rgb(0,0,0)" offset="0.720000029" stop-opacity="0" />
+			<stop stop-color="rgb(0,0,0)" offset="0.959999979" stop-opacity="0.379999995" />
+			<stop stop-color="rgb(0,0,0)" offset="1" stop-opacity="0.5" />
+		</radialGradient>
+		<radialGradient id="paint_radial_47" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,-50,50,0,50,50)">
+			<stop stop-color="rgb(216,201,164)" offset="0" stop-opacity="0.239999995" />
+			<stop stop-color="rgb(216,201,164)" offset="1" stop-opacity="0" />
+		</radialGradient>
+		<radialGradient id="paint_radial_48" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,-9,15,0,15,9)">
+			<stop stop-color="rgb(255,255,255)" offset="0" stop-opacity="0.949999988" />
+			<stop stop-color="rgb(255,255,255)" offset="0.449999988" stop-opacity="0.349999994" />
+			<stop stop-color="rgb(255,255,255)" offset="1" stop-opacity="0" />
+		</radialGradient>
+		<radialGradient id="paint_radial_49" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,-16,25,0,25,16)">
+			<stop stop-color="rgb(255,255,255)" offset="0" stop-opacity="0.5" />
+			<stop stop-color="rgb(255,255,255)" offset="1" stop-opacity="0" />
+		</radialGradient>
+	</defs>
+	<rect id="B1" width="100.000000" height="100.000000" x="0.000000" y="0.000000" />
+	<g id="stoneB">
+		<circle id="椭圆 907" cx="50" cy="50" r="50" fill="url(#paint_radial_45)" />
+		<circle id="椭圆 908" cx="50" cy="50" r="50" fill="url(#paint_radial_46)" />
+		<circle id="椭圆 909" cx="50" cy="50" r="50" fill="url(#paint_radial_47)" />
+		<ellipse id="椭圆 910" rx="15.000003" ry="9.000001" cx="15.0000029" cy="9.00000095" fill="url(#paint_radial_48)" transform="matrix(0.882948,0.469472,-0.469472,0.882948,61.9811,13.0112)" />
+		<ellipse id="椭圆 911" rx="25.000000" ry="16.000000" cx="25" cy="16" opacity="0.300000012" fill="url(#paint_radial_49)" transform="matrix(0.913545,0.406737,-0.406737,0.913545,63.6692,17.2148)" />
+		<path id="矢量 823" d="M62 1.5C70.8285 3.68861 78.8927 8.244 85.3244 14.6756C91.756 21.1073 96.3114 29.1715 98.5 38" fill-rule="nonzero" stroke="rgb(255,255,255)" stroke-opacity="0.300000012" stroke-linecap="round" stroke-width="2.000000" />
+	</g>
+	<g id="fA1B">
+		<path id="矢量 824" d="M6 32C13.3333 30 20.6667 30 28 32C35.3333 34 42.6667 34 50 32C57.3333 30 64.6667 30 72 32C79.3333 34 86.6667 34 94 32" fill-rule="nonzero" stroke="rgb(255,255,255)" stroke-opacity="0.0900000036" stroke-linecap="round" stroke-width="0.800000" />
+		<path id="矢量 825" d="M4 44C12 42 19.6667 42 27 44C35 46 42.6667 46 50 44C57.3333 42 65 42 73 44C80.3333 46 88 46 96 44" fill-rule="nonzero" stroke="rgb(255,255,255)" stroke-opacity="0.0700000003" stroke-linecap="round" stroke-width="0.800000" />
+		<path id="矢量 826" d="M4 56C12 54 19.6667 54 27 56C35 58 42.6667 58 50 56C57.3333 54 65 54 73 56C80.3333 58 88 58 96 56" fill-rule="nonzero" stroke="rgb(255,255,255)" stroke-opacity="0.0900000036" stroke-linecap="round" stroke-width="0.800000" />
+		<path id="矢量 827" d="M6 68C13.3333 66 20.6667 66 28 68C35.3333 70 42.6667 70 50 68C57.3333 66 64.6667 66 72 68C79.3333 70 86.6667 70 94 68" fill-rule="nonzero" stroke="rgb(255,255,255)" stroke-opacity="0.0599999987" stroke-linecap="round" stroke-width="0.800000" />
+	</g>
+</svg>

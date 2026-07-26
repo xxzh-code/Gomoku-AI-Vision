@@ -1,0 +1,44 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100.000000" height="100.000000" fill="none">
+	<defs>
+		<radialGradient id="paint_radial_35" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,-50,50,0,50,50)">
+			<stop stop-color="rgb(120,125,133)" offset="0" stop-opacity="1" />
+			<stop stop-color="rgb(72,76,83)" offset="0.180000007" stop-opacity="1" />
+			<stop stop-color="rgb(36,39,45)" offset="0.449999988" stop-opacity="1" />
+			<stop stop-color="rgb(19,21,25)" offset="0.75" stop-opacity="1" />
+			<stop stop-color="rgb(8,9,12)" offset="1" stop-opacity="1" />
+		</radialGradient>
+		<radialGradient id="paint_radial_36" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,-50,50,0,50,50)">
+			<stop stop-color="rgb(0,0,0)" offset="0.720000029" stop-opacity="0" />
+			<stop stop-color="rgb(0,0,0)" offset="0.959999979" stop-opacity="0.379999995" />
+			<stop stop-color="rgb(0,0,0)" offset="1" stop-opacity="0.5" />
+		</radialGradient>
+		<radialGradient id="paint_radial_37" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,-50,50,0,50,50)">
+			<stop stop-color="rgb(216,201,164)" offset="0" stop-opacity="0.239999995" />
+			<stop stop-color="rgb(216,201,164)" offset="1" stop-opacity="0" />
+		</radialGradient>
+		<radialGradient id="paint_radial_38" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,-9,15,0,15,9)">
+			<stop stop-color="rgb(255,255,255)" offset="0" stop-opacity="0.949999988" />
+			<stop stop-color="rgb(255,255,255)" offset="0.449999988" stop-opacity="0.349999994" />
+			<stop stop-color="rgb(255,255,255)" offset="1" stop-opacity="0" />
+		</radialGradient>
+		<radialGradient id="paint_radial_39" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,-16,25,0,25,16)">
+			<stop stop-color="rgb(255,255,255)" offset="0" stop-opacity="0.5" />
+			<stop stop-color="rgb(255,255,255)" offset="1" stop-opacity="0" />
+		</radialGradient>
+	</defs>
+	<rect id="B3" width="100.000000" height="100.000000" x="0.000000" y="0.000000" />
+	<g id="stoneB">
+		<circle id="椭圆 1261" cx="50" cy="50" r="50" fill="url(#paint_radial_35)" />
+		<circle id="椭圆 1262" cx="50" cy="50" r="50" fill="url(#paint_radial_36)" />
+		<circle id="椭圆 1263" cx="50" cy="50" r="50" fill="url(#paint_radial_37)" />
+		<ellipse id="椭圆 1264" rx="14.999999" ry="8.999999" cx="14.999999" cy="8.99999905" fill="url(#paint_radial_38)" transform="matrix(0.882948,0.469472,-0.469472,0.882948,61.981,13.0112)" />
+		<ellipse id="椭圆 1265" rx="25.000000" ry="16.000000" cx="25" cy="16" opacity="0.300000012" fill="url(#paint_radial_39)" transform="matrix(0.913545,0.406737,-0.406737,0.913545,63.6692,17.2148)" />
+		<path id="矢量 1190" d="M62 1.5C70.8285 3.68861 78.8927 8.244 85.3244 14.6756C91.756 21.1073 96.3114 29.1715 98.5 38" fill-rule="nonzero" stroke="rgb(255,255,255)" stroke-opacity="0.300000012" stroke-linecap="round" stroke-width="2.000000" />
+	</g>
+	<g id="rA4B">
+		<path id="矢量 1191" d="M38 40C39.7923 37.949 42.0786 36.3895 44.6422 35.4692C47.2059 34.5489 49.962 34.2984 52.6496 34.7412C55.3372 35.1841 57.8672 36.3058 60 38" fill-rule="nonzero" stroke="rgb(255,255,255)" stroke-opacity="0.0900000036" stroke-linecap="round" stroke-width="0.900000" />
+		<path id="矢量 1192" d="M24 58C22.7345 53.4348 22.6479 48.623 23.7485 44.0153C24.8491 39.4075 27.1008 35.1542 30.2928 31.6537C33.4849 28.1532 37.513 25.5198 42 24" fill-rule="nonzero" stroke="rgb(255,255,255)" stroke-opacity="0.0700000003" stroke-linecap="round" stroke-width="0.900000" />
+		<path id="矢量 1193" d="M72 68C68.6268 71.9495 64.2216 74.8829 59.2768 76.4723C54.3321 78.0617 49.0427 78.2444 44 77" fill-rule="nonzero" stroke="rgb(255,255,255)" stroke-opacity="0.0599999987" stroke-linecap="round" stroke-width="0.900000" />
+		<path id="矢量 1194" d="M80 22C84.1314 26.1948 87.3347 31.2114 89.402 36.7242C91.4693 42.2371 92.3545 48.123 92 54" fill-rule="nonzero" stroke="rgb(255,255,255)" stroke-opacity="0.0500000007" stroke-linecap="round" stroke-width="0.800000" />
+	</g>
+</svg>

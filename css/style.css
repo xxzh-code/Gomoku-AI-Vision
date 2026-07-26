@@ -246,6 +246,9 @@ html, body {
   background: url('../assets/images/board_bg.png') center/cover;
   line-height: 0;
 }
+.board-main.preview-active {
+  cursor: crosshair;
+}
 
 /* 坐标（在 board-main padding 区内绝对定位，与网格线对齐） */
 .coord-label {
@@ -329,23 +332,45 @@ html, body {
   pointer-events: none;
 }
 
-/* 棋子 */
-.stone {
+/* 阴影层 + 棋子层 */
+.shadows-layer,
+.stones-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* 阴影与棋子：阴影宽=1.48×棋子宽 */
+.stone-shadow,
+.stone-img {
   position: absolute;
   left: calc(var(--sx) * var(--cell-size));
   top:  calc(var(--sy) * var(--cell-size));
   width:  calc(var(--stone-r) * 2);
-  height: calc(var(--stone-r) * 2);
-  border-radius: 50%;
+  height: auto;
   transform: translate(-50%, -50%);
 }
-.stone-black {
-  background: radial-gradient(circle at 35% 35%, #555, #111);
-  box-shadow: 1.5px 1.5px 3px rgba(0,0,0,0.35);
+.stone-shadow {
+  width: calc(var(--stone-r) * 2 * 1.48);
 }
-.stone-white {
-  background: radial-gradient(circle at 35% 35%, #fff, #c8c8c8);
-  box-shadow: 1.5px 1.5px 3px rgba(0,0,0,0.35);
+/* 预览元素：transform 移动 + opacity 淡入淡出 */
+.stone-pv {
+  left: 0 !important;
+  top: 0 !important;
+  transition: transform 0.08s ease-out, opacity 0.12s ease;
+}
+.no-transition {
+  transition: none !important;
+}
+
+/* 落子动画（作用在 stone-img 上） */
+@keyframes stone-drop {
+  0%   { transform: translate(-50%, -50%) scale(1.6); opacity: 0.6; }
+  70%  { transform: translate(-50%, -50%) scale(0.95); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+.stone-drop {
+  animation: stone-drop 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 /* 最后一手红点 */
