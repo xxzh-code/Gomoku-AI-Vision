@@ -60,7 +60,10 @@ const bgLayers     = document.getElementById('bgLayers');
 const homeBtn      = document.getElementById('homeBtn');
 const notationTable = document.getElementById('notationTable');
 const turnStoneEl   = document.getElementById('turnStone');
-const turnTextEl    = document.getElementById('turnText');
+const turnTextA     = document.getElementById('turnTextA');
+const turnTextB     = document.getElementById('turnTextB');
+let   _turnFront    = turnTextA;  // 当前可见的文字元素
+let   _turnBack     = turnTextB;  // 当前隐藏的文字元素
 
 // 快捷栏按钮
 const btnMenu   = document.getElementById('btnMenu');
@@ -207,31 +210,54 @@ btnHint.addEventListener('click', () => {
   }
 });
 
-// ---------- 执子信息 ----------
+// ---------- 执子信息（双文字交叉淡入淡出 0.2s）----------
 function updateTurnInfo(board) {
   const hist = board.moveHistory;
   const cp   = board.currentPlayer;
   const over = board.isGameOver();
 
+  let stoneClass, newText;
+
   if (over && board.drawAgreed) {
-    // 和局：拼凑棋子
-    turnStoneEl.className = 'turn-stone split';
-    turnTextEl.textContent = '和局';
+    stoneClass = 'turn-stone split';
+    newText = '和局';
   } else if (over && board.winner) {
-    // 胜局：显示胜方
-    turnStoneEl.className = 'turn-stone ' + (board.winner === 1 ? 'black' : 'white');
-    turnTextEl.textContent = board.winner === 1 ? '黑方胜' : '白方胜';
+    stoneClass = 'turn-stone ' + (board.winner === 1 ? 'black' : 'white');
+    newText = board.winner === 1 ? '黑方胜' : '白方胜';
   } else {
-    // 对局中
-    turnStoneEl.className = 'turn-stone ' + (cp === 1 ? 'black' : 'white');
+    stoneClass = 'turn-stone ' + (cp === 1 ? 'black' : 'white');
     if (hist.length === 0) {
-      turnTextEl.textContent = '黑先行';
+      newText = '黑先行';
     } else if (hist.length === 1) {
-      turnTextEl.textContent = '白后手';
+      newText = '白后手';
     } else {
-      turnTextEl.textContent = cp === 1 ? '黑行棋' : '白行棋';
+      newText = cp === 1 ? '黑行棋' : '白行棋';
     }
   }
+
+  // 文字未变则跳过
+  if (_turnFront.textContent === newText && turnStoneEl.className === stoneClass) return;
+
+  // 棋子 CSS transition 0.2s 自动过渡
+  turnStoneEl.className = stoneClass;
+
+  // 在隐藏层写入新文字
+  _turnBack.textContent = newText;
+  _turnBack.classList.remove('turn-text-back');
+
+  // 交叉淡入淡出
+  _turnFront.style.opacity = '0';
+  _turnBack.style.opacity = '1';
+
+  // 交换前后角色
+  const prevBack = _turnBack;
+  _turnBack = _turnFront;
+  _turnFront = prevBack;
+
+  // 过渡结束后旧文字退到背面
+  setTimeout(() => {
+    _turnBack.classList.add('turn-text-back');
+  }, 200);
 }
 
 // ---------- 记谱（CSS 圈号/胶囊：黑着实心，白着空心）----------
