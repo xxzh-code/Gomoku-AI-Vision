@@ -128,6 +128,14 @@ export class BoardRenderer {
     this._pvVisible = false;
 
     this.boardGrid.appendChild(this.stonesLayer);
+
+    // 终局连线（wrapper 旋转，inner 拉伸动画）
+    this.winLineWrap = el('div','win-line-wrap');
+    this.winLineWrap.style.display = 'none';
+    this.winLineEl = el('div','win-line');
+    this.winLineWrap.appendChild(this.winLineEl);
+    this.boardGrid.appendChild(this.winLineWrap);
+
     this.boardMain.appendChild(this.boardGrid);
 
     for (let i = 0; i < BOARD_SIZE; i++) {
@@ -172,12 +180,11 @@ export class BoardRenderer {
   }
   _hidePreview() {
     if (!this._pvVisible) return;
-    this._pvVisible = false;
     this.boardMain.classList.remove('preview-active');
-    // 淡出 → 再 display:none
     this.pvShadow.style.opacity = '0';
     this.pvImg.style.opacity = '0';
     this._pvTimer = setTimeout(() => {
+      this._pvVisible = false;
       this.pvShadow.style.display = 'none';
       this.pvImg.style.display = 'none';
       this._pvTimer = null;
@@ -232,6 +239,7 @@ export class BoardRenderer {
       requestAnimationFrame(() => {
         this._pendingLayout = false;
         this.computeLayout();
+        if (this._lastWinLine) this._drawWinLine(this._lastWinLine, false);
       });
     }
   }
@@ -249,6 +257,46 @@ export class BoardRenderer {
   get hintPos() { return this._hintPos; }
 
   static notation(x, y) { return COL_LABELS[x] + (15 - y); }
+
+  /* ======== 终局连线 ======== */
+  showWinLine(board) {
+    const line = board.getWinningLine();
+    if (!line) return;
+    this._lastWinLine = line;  // 保存供 resize 重绘
+    this._drawWinLine(line);
+  }
+
+  _drawWinLine(line, animate = true) {
+    let { x1, y1, x2, y2 } = line;
+    if (y1 > y2 || (y1 === y2 && x1 > x2)) {
+      [x1, y1, x2, y2] = [x2, y2, x1, y1];
+    }
+    const cs = this.cellSize;
+    const sx = x1 * cs, sy = y1 * cs;
+    const ex = x2 * cs, ey = y2 * cs;
+    const dx = ex - sx, dy = ey - sy;
+    const len = Math.hypot(dx, dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+    const wrap = this.winLineWrap;
+    wrap.style.display = '';
+    wrap.style.left = sx + 'px';
+    wrap.style.top  = (sy - 2) + 'px';
+    wrap.style.width = len + 'px';
+    wrap.style.transform = `rotate(${angle}deg)`;
+
+    if (animate) {
+      const el = this.winLineEl;
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.style.animation = 'win-draw 0.15s ease-in forwards';
+    }
+  }
+
+  hideWinLine() {
+    this.winLineWrap.style.display = 'none';
+    this._lastWinLine = null;
+  }
 
   /* ======== 绘制 ======== */
   draw(board) {
@@ -269,7 +317,6 @@ export class BoardRenderer {
           const wasHidden = stone.style.display === 'none';
           stone.style.display = '';
           shadow.style.display = '';
-          // 仅新落子随机选取，已有棋子保持原样
           if (!this._stoneSrcs[y][x]) {
             this._stoneSrcs[y][x] = randomStone(v);
           }
@@ -290,6 +337,23 @@ export class BoardRenderer {
       this.lastMarker.style.setProperty('--sy', last.y);
     } else {
       this.lastMarker.style.display = 'none';
+    }
+
+    // 终局连线
+    const wl = board.getWinningLine();
+    if (board.winner && wl) {
+      const same = this._lastWinLine &&
+        this._lastWinLine.x1 === wl.x1 && this._lastWinLine.y1 === wl.y1 &&
+        this._lastWinLine.x2 === wl.x2 && this._lastWinLine.y2 === wl.y2;
+      this._lastWinLine = wl;
+      if (same) {
+        // 已存在：仅更新位置，不重播动画
+        this._drawWinLine(wl, false);
+      } else {
+        setTimeout(() => this._drawWinLine(wl, true), 280);
+      }
+    } else {
+      this.hideWinLine();
     }
 
     this._hidePreview();

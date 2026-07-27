@@ -12,6 +12,7 @@ export class Board {
     this.winner = null;
     this.moveHistory = [];
     this.drawAgreed = false;
+    this.winLine = null;   // { x1, y1, x2, y2 } | null
   }
 
   /** 尝试在 (x, y) 落子，返回是否成功 */
@@ -23,8 +24,10 @@ export class Board {
     this.grid[y][x] = this.currentPlayer;
     this.moveHistory.push({ x, y, player: this.currentPlayer });
 
-    if (this.checkWin(x, y, this.currentPlayer)) {
+    const line = this.findWinLine(x, y, this.currentPlayer);
+    if (line) {
       this.winner = this.currentPlayer;
+      this.winLine = line;
     }
 
     // 切换玩家
@@ -32,27 +35,32 @@ export class Board {
     return true;
   }
 
-  /** 五子连珠判断 */
-  checkWin(x, y, player) {
+  /** 判断 (x,y) 是否形成五连/长连，返回连线端点 */
+  findWinLine(x, y, player) {
     const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
     for (const [dx, dy] of dirs) {
-      let count = 1;
-      // 正方向
-      for (let step = 1; step < 5; step++) {
-        const nx = x + dx * step, ny = y + dy * step;
-        if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE && this.grid[ny][nx] === player) count++;
-        else break;
+      let sx = x, sy = y, ex = x, ey = y;
+      // 正方向延伸
+      while (true) {
+        const nx = ex + dx, ny = ey + dy;
+        if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE && this.grid[ny][nx] === player) {
+          ex = nx; ey = ny;
+        } else break;
       }
-      // 负方向
-      for (let step = 1; step < 5; step++) {
-        const nx = x - dx * step, ny = y - dy * step;
-        if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE && this.grid[ny][nx] === player) count++;
-        else break;
+      // 负方向延伸
+      while (true) {
+        const nx = sx - dx, ny = sy - dy;
+        if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE && this.grid[ny][nx] === player) {
+          sx = nx; sy = ny;
+        } else break;
       }
-      if (count >= 5) return true;
+      const count = Math.max(Math.abs(ex - sx), Math.abs(ey - sy)) + 1;
+      if (count >= 5) return { x1: sx, y1: sy, x2: ex, y2: ey };
     }
-    return false;
+    return null;
   }
+
+  getWinningLine() { return this.winLine; }
 
   /** 获取所有空位坐标 */
   getEmptyCells() {

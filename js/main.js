@@ -48,6 +48,14 @@ function startHomeAnimation() {
 // 启动欢迎动画
 startHomeAnimation();
 
+// 禁用 Tab 聚焦 + 空格/回车触发按钮
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab') { e.preventDefault(); }
+  if (e.key === ' ' || e.key === 'Enter') {
+    if (e.target.tagName === 'BUTTON') e.preventDefault();
+  }
+});
+
 // ========== 页面切换与游戏初始化 ==========
 let controller  = null;
 let renderer    = null;
@@ -110,6 +118,7 @@ function startGame(mode) {
   controller.onUpdate = (b) => {
     updateTurnInfo(b);
     updateNotation(b);
+    btnUndo.disabled = b.moveHistory.length === 0;
     if (renderer) renderer.hintPos = null;
   };
   controller.start();
