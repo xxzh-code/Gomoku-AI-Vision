@@ -96,6 +96,7 @@ document.getElementById('btnTwoPlayer').addEventListener('click', () => startGam
 document.getElementById('btnRules').addEventListener('click', showRules);
 
 function startGame(mode) {
+  hideEndModal();
   currentMode = mode;
   isFocus = false;
   gamePage.classList.remove('focus-mode');
@@ -120,6 +121,15 @@ function startGame(mode) {
     updateNotation(b);
     btnUndo.disabled = b.moveHistory.length === 0;
     if (renderer) renderer.hintPos = null;
+    // 终局弹窗
+    if (b.isGameOver() && !endOverlay.classList.contains('active')) {
+      const er = b.endReason;
+      if (er === 'win') {
+        setTimeout(() => showEndModal(b), 450); // 等落子动画+连线动画
+      } else {
+        showEndModal(b);
+      }
+    }
   };
   controller.start();
 }
@@ -130,6 +140,7 @@ function showRules() {
 }
 
 function goHome() {
+  hideEndModal();
   gamePage.classList.remove('active');
   rulesPage.classList.remove('active');
   homePage.classList.add('active');
@@ -303,3 +314,58 @@ function updateNotation(board) {
 
 if (homeBtn) homeBtn.addEventListener('click', goHome);
 rulesBackBtn.addEventListener('click', goHome);
+
+// ========== 终局弹窗 ==========
+const endOverlay  = document.getElementById('endOverlay');
+const endTitleEl  = document.getElementById('endTitle');
+const endReasonEl = document.getElementById('endReason');
+const endExit     = document.getElementById('endExit');
+const endRestart  = document.getElementById('endRestart');
+
+function showEndModal(board) {
+  const w = board.winner;
+  const er = board.endReason;
+  const cp = board.currentPlayer; // 其实是上一个玩家（因为place后已经切换），对于认输来说认输方是 currentPlayer
+
+  // 标题
+  if (board.drawAgreed || er === 'draw') {
+    endTitleEl.textContent = '和局';
+  } else if (er === 'full') {
+    endTitleEl.textContent = '和局';
+  } else if (w) {
+    endTitleEl.textContent = w === 1 ? '黑胜' : '白胜';
+  } else {
+    endTitleEl.textContent = '和局';
+  }
+
+  // 原因
+  let reason = '';
+  if (er === 'win') {
+    const winLine = board.getWinningLine();
+    if (winLine) {
+      const count = Math.max(Math.abs(winLine.x2 - winLine.x1), Math.abs(winLine.y2 - winLine.y1)) + 1;
+      const side = w === 1 ? '黑方' : '白方';
+      reason = side + (count >= 6 ? '长连' : '五连');
+    }
+  } else if (er === 'resign') {
+    reason = (w === 1 ? '白方' : '黑方') + '服输';
+  } else if (er === 'draw') {
+    reason = '双方一致同意和棋';
+  } else if (er === 'full') {
+    reason = '棋盘已满，无空余交叉点';
+  }
+  endReasonEl.textContent = reason;
+
+  endOverlay.classList.add('active');
+}
+
+function hideEndModal() {
+  endOverlay.classList.remove('active');
+}
+
+endExit.addEventListener('click', () => { hideEndModal(); goHome(); });
+endRestart.addEventListener('click', () => { hideEndModal(); if (controller) controller.start(); });
+// 点击弹窗外部 → 复盘（关闭弹窗）
+endOverlay.addEventListener('click', (e) => {
+  if (e.target === endOverlay) hideEndModal();
+});

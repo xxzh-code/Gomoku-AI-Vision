@@ -57,6 +57,9 @@ export class GameController {
   }
 
   afterMove() {
+    if (!this.board.winner && !this.board.drawAgreed && this.board.getEmptyCells().length === 0) {
+      this.board.endReason = 'full';
+    }
     this.renderer.draw(this.board);
     this.updateStatus();
     this.fireUpdate();
@@ -87,6 +90,7 @@ export class GameController {
     if (this.board.isGameOver()) return;
     const opp = this.board.currentPlayer === PLAYER_BLACK ? PLAYER_WHITE : PLAYER_BLACK;
     this.board.winner = opp;
+    this.board.endReason = 'resign';
     this.afterMove();
   }
 
@@ -94,6 +98,7 @@ export class GameController {
   offerDraw() {
     if (this.board.isGameOver()) return;
     this.board.drawAgreed = true;
+    this.board.endReason = 'draw';
     this.afterMove();
   }
 

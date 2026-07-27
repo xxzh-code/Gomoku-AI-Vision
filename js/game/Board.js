@@ -13,6 +13,7 @@ export class Board {
     this.moveHistory = [];
     this.drawAgreed = false;
     this.winLine = null;   // { x1, y1, x2, y2 } | null
+    this.endReason = null; // 'win'|'resign'|'draw'|'full'|'pass'|'timeout'
   }
 
   /** 尝试在 (x, y) 落子，返回是否成功 */
@@ -28,6 +29,7 @@ export class Board {
     if (line) {
       this.winner = this.currentPlayer;
       this.winLine = line;
+      this.endReason = 'win';
     }
 
     // 切换玩家
